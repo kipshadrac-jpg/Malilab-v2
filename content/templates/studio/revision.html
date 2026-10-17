@@ -1,0 +1,56 @@
+{% extends "studio/base.html" %}
+{% load covers %}
+{% block title %}{{ rev.title }}{% endblock %}
+{% block content %}
+<p class="eyebrow">{{ kind_label }} · {{ identity.slug }} · revision {{ rev.revision_number }}</p>
+<h1>{{ rev.title }}</h1>
+<p><span class="badge badge-{{ rev.status }}">{{ rev.status }}</span>{% if rev.author %} <span class="row-meta">written by {{ rev.author.email }}</span>{% endif %}{% if live_path %} · <a href="{{ live_path }}">View it on the public site</a>{% endif %}</p>
+
+{% if returned %}<div class="studio-banner" role="note"><h2>Returned to the author</h2><p>{{ returned.comment }}</p><p class="row-meta">{{ returned.reviewer.email }} · {{ returned.role_snapshot }} · {{ returned.created_at|date:"j M Y, H:i" }}</p></div>{% endif %}
+{% if problems %}<div class="studio-errors" role="note"><p>Before this can be sent for review:</p><ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+
+{% if can_edit or actions %}
+<section class="studio-card" aria-labelledby="next-step">
+  <h2 id="next-step">What you can do</h2>
+  {% if can_edit %}<p><a class="studio-button secondary" href="{% url 'studio-edit' kind rev.pk %}">Edit this draft</a></p>{% endif %}
+  {% if can_edit and kind == 'playbook' %}<p><a class="studio-button secondary" href="{% url 'studio-cover' rev.pk %}">{% if rev.cover_asset %}Change the cover image{% else %}Add a cover image{% endif %}</a></p>{% endif %}
+  {% for a in actions %}
+  <form method="post" action="{% url 'studio-act' kind rev.pk a.name %}" class="studio-action">
+    {% csrf_token %}
+    {% if a.comment %}<div class="studio-field"><label for="comment-{{ a.name }}-{{ forloop.counter }}">Note{% if a.comment == 'optional' %} (optional){% else %} (required){% endif %} for {{ a.label|lower }}</label>
+      <textarea id="comment-{{ a.name }}-{{ forloop.counter }}" name="comment" rows="3"{% if a.comment == 'required' %} required{% endif %}></textarea></div>{% endif %}
+    <button class="studio-button{% if a.style == 'secondary' %} secondary{% endif %}" type="submit">{{ a.label }}</button>
+    <span class="row-meta">{{ a.help }}</span>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="studio-card" aria-labelledby="preview">
+  <h2 id="preview">What the learner will see</h2>
+  {% if kind == 'lesson' %}
+    {% if preview.summary %}<p class="lead">{{ preview.summary }}</p>{% endif %}
+    {{ preview.body_html }}
+  {% elif kind == 'practice' %}
+    {% if preview.instructions %}<p>{{ preview.instructions }}</p>{% endif %}
+    {% if preview.prompt %}<p><em>{{ preview.prompt }}</em></p>{% endif %}
+    <ol class="studio-questions">{% for q in preview.questions %}<li><strong>{{ q.label }}</strong>{% if q.required %} (required){% endif %}<br><span class="row-meta">{{ q.type }}{% if q.limits %} · {{ q.limits }}{% endif %}</span>{% if q.options %}<ul>{% for o in q.options %}<li>{{ o }}</li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ol>
+    {% if preview.safety_text %}<p class="row-meta">{{ preview.safety_text }}</p>{% endif %}
+  {% elif kind == 'module' %}
+    {% if preview.description %}<p>{{ preview.description }}</p>{% endif %}
+    <ol class="studio-questions">{% for r in preview.items %}<li><strong>{{ r.title }}</strong><br><span class="row-meta">{{ r.kind }} · {{ r.classification }}</span></li>{% endfor %}</ol>
+  {% else %}
+    {% if preview.summary %}<p class="lead">{{ preview.summary }}</p>{% endif %}
+    {% if rev.cover_asset %}<img class="cover-image" src="{{ rev.cover_asset|cover_url }}" alt="{{ rev.cover_asset|cover_alt }}" width="1200" height="630">{% endif %}
+    {% include "content/_playbook_guide.html" with revision=rev %}
+    <h3 class="pg-more-h">Recommended modules</h3>
+    <ol class="studio-questions">{% for r in preview.items %}<li><strong>{{ r.title }}</strong>{% if r.rationale %}<br><span class="row-meta">{{ r.rationale }}</span>{% endif %}</li>{% endfor %}</ol>
+  {% endif %}
+</section>
+
+<section class="studio-card" aria-labelledby="history">
+  <h2 id="history">History</h2>
+  {% if history %}<ul class="studio-list">{% for h in history %}<li class="studio-row"><span class="row-title">{{ h.label }}</span><span class="row-meta">{{ h.when|date:"j M Y, H:i" }} · {{ h.who }} ({{ h.role }})</span>{% if h.comment %}<p>{{ h.comment|linebreaksbr }}</p>{% endif %}</li>{% endfor %}</ul>{% else %}<p class="studio-empty">No decisions have been recorded yet.</p>{% endif %}
+</section>
+<p><a href="{% url 'studio-home' %}">Back to my work</a></p>
+{% endblock %}

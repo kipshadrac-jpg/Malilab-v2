@@ -1,0 +1,16 @@
+{% extends "content/base.html" %}
+{% block title %}Evaluations · MaliLab{% endblock %}
+{% block content %}
+<article class="reading-column">
+  <h1>Practice evaluations</h1>
+  <p>Submitted attempts waiting for a human decision. Nothing is accepted automatically.</p>
+  {% if attempts %}
+  <ul>
+    {% for a in attempts %}
+    <li><a href="{% url 'staff-evaluation' a.pk %}">{{ a.practice_revision.title }}</a>
+      · revision {{ a.practice_revision.revision_number }} · submitted {{ a.submitted_at|date:"Y-m-d H:i" }} UTC</li>
+    {% endfor %}
+  </ul>
+  {% else %}<p>No submitted attempts are waiting.</p>{% endif %}
+</article>
+{% endblock %}

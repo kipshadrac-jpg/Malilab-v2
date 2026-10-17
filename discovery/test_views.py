@@ -1,0 +1,27 @@
+from django.test import TestCase, Client
+
+class SearchViewTests(TestCase):
+    def test_blank_search_is_safe_and_renders(self):
+        response=Client().get('/search/')
+        self.assertEqual(response.status_code,200)
+        self.assertContains(response,'Search learning content')
+
+    def test_query_returns_only_current_exact_published_revision(self):
+        from content.models import PracticeActivity, PracticeActivityRevision
+        from discovery.models import SearchProjection
+        activity=PracticeActivity.objects.create(slug='search-practice')
+        old=PracticeActivityRevision.objects.create(activity=activity,revision_number=1,title='Sacco basics',status='draft')
+        current=PracticeActivityRevision.objects.create(activity=activity,revision_number=2,title='Sacco learning',status='draft')
+        for revision in (old,current):
+            revision.status='published'; revision._allow_lifecycle_transition=True; revision.save()
+            SearchProjection.objects.create(content_kind='practice',practice_revision=revision,title=revision.title,searchable_text=revision.title)
+        from django.db import connection
+        if connection.vendor == 'postgresql':
+            # PostgreSQL search matches on the stored vector, which rebuild_revision_projection fills in production.
+            from django.contrib.postgres.search import SearchVector
+            SearchProjection.objects.update(search_vector=SearchVector('title', weight='A') + SearchVector('searchable_text', weight='B'))
+        activity.current_published_revision=current; activity.status='published'; activity._allow_pointer_update=True; activity.save()
+        response=Client().get('/search/?q=sacco')
+        self.assertEqual(response.status_code,200)
+        self.assertContains(response,'Sacco learning')
+        self.assertNotContains(response,'Sacco basics')

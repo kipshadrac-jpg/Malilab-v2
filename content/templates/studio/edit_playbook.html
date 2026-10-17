@@ -1,0 +1,14 @@
+{% extends "studio/base.html" %}
+{% block title %}{% if creating %}New playbook{% else %}Edit playbook{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if creating %}New playbook{% else %}Edit playbook{% endif %}</h1>
+<p>A playbook starts from a real situation a learner recognises and recommends the modules that help.</p>
+<form method="post" class="studio-form" novalidate>
+  {% csrf_token %}
+  {% include "studio/_errors.html" %}
+  {% include "studio/_fields.html" %}
+  {% include "studio/_picker.html" with picker_title="Recommended modules" picker_help="Tick the modules to recommend and number the order (1 comes first)." with_classification=False %}
+  <button class="studio-button" type="submit">Save draft</button>
+  {% if revision %}<a href="{% url 'studio-revision' kind revision.pk %}">Cancel</a>{% else %}<a href="{% url 'studio-home' %}">Cancel</a>{% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'content/base.html' %}
+{% load covers %}
+{% block title %}Playbooks — MaliLab{% endblock %}
+{% block content %}<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'home' %}">Home</a><span aria-current="page">Playbooks</span></nav>
+<h1>Playbooks</h1>
+{% if playbooks %}<ul class="card-list">{% for item in playbooks %}<li>{% if item.current_published_revision.cover_asset %}<img class="cover-thumb" src="{{ item.current_published_revision.cover_asset|cover_url }}" alt="" width="1200" height="630" loading="lazy">{% endif %}<a href="{% url 'playbook-detail' item.slug %}">{{ item.current_published_revision.title }}</a>{% if item.current_published_revision.summary %}<p>{{ item.current_published_revision.summary }}</p>{% endif %}</li>{% endfor %}</ul>
+{% else %}<p class="empty-state">There are no published Playbooks yet.</p>{% endif %}{% endblock %}

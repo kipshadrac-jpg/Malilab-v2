@@ -1,0 +1,13 @@
+{% extends "content/base.html" %}{% load practice_tags %}
+{% block title %}{{ attempt.practice_revision.title }} · MaliLab{% endblock %}
+{% block content %}<article class="reading-column"><h1>{{ attempt.practice_revision.title }}</h1>{% if attempt.practice_revision.instructions %}<p>{{ attempt.practice_revision.instructions }}</p>{% endif %}{% if attempt.practice_revision.prompt %}<p>{{ attempt.practice_revision.prompt }}</p>{% endif %}
+{% for message in errors.form %}<p role="alert">{{ message }}</p>{% endfor %}
+{% for q in schema.questions %}<section>{% if errors|get_item:q.id %}<p role="alert">{{ errors|get_item:q.id }}</p>{% endif %}<h2>{{ q.label }}{% if q.required %} <span>(required)</span>{% endif %}</h2>
+<form method="post" action="{% url 'practice-save' attempt.pk %}">{% csrf_token %}<input type="hidden" name="question_id" value="{{ q.id }}">
+{% if q.type == 'short_text' %}<label for="{{ q.id }}">{{ q.label }}</label><input id="{{ q.id }}" name="{{ q.id }}" maxlength="{{ q.constraints.max_length }}" value="{{ saved|get_item:q.id|default:'' }}">
+{% elif q.type == 'long_text' %}<label for="{{ q.id }}">{{ q.label }}</label><textarea id="{{ q.id }}" name="{{ q.id }}" maxlength="{{ q.constraints.max_length }}">{{ saved|get_item:q.id|default:'' }}</textarea>
+{% elif q.type == 'integer' %}<label for="{{ q.id }}">{{ q.label }}</label><input id="{{ q.id }}" name="{{ q.id }}" inputmode="numeric" value="{{ saved|get_item:q.id|default:'' }}">
+{% elif q.type == 'decimal_amount' %}<label for="{{ q.id }}">{{ q.label }} (KES)</label><input id="{{ q.id }}" name="{{ q.id }}" inputmode="decimal" value="{{ saved|get_item:q.id|default:'' }}">
+{% elif q.type == 'single_choice' %}{% for option in q.options %}<label><input type="radio" name="{{ q.id }}" value="{{ option.id }}" {% if saved|get_item:q.id == option.id %}checked{% endif %}> {{ option.label }}</label>{% endfor %}
+{% else %}{% for option in q.options %}<label><input type="checkbox" name="{{ q.id }}" value="{{ option.id }}" {% if option.id in saved|get_item:q.id %}checked{% endif %}> {{ option.label }}</label>{% endfor %}{% endif %}<button type="submit" name="action" value="save">Save answer</button></form></section>{% endfor %}
+<form method="post" action="{% url 'practice-submit' attempt.pk %}">{% csrf_token %}{% for q in schema.questions %}{% with answer=saved|get_item:q.id %}{% if q.type == 'multiple_choice' %}{% for option in q.options %}{% if option.id in answer %}<input type="hidden" name="{{ q.id }}" value="{{ option.id }}">{% endif %}{% endfor %}{% elif answer != None %}<input type="hidden" name="{{ q.id }}" value="{{ answer }}">{% endif %}{% endwith %}{% endfor %}<button type="submit">Submit Practice</button></form></article>{% endblock %}

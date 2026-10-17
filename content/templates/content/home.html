@@ -1,0 +1,17 @@
+{% extends 'content/base.html' %}
+{% load covers %}
+{% block title %}MaliLab — Learn about money{% endblock %}
+{% block content %}
+<section class="welcome">
+  <p class="eyebrow">A public learning library</p>
+  <h1>Learn how money works in Kenya</h1>
+  <p>Explore published learning, one lesson at a time.</p>
+  <p><a class="button-link" href="{% url 'playbook-list' %}">Explore Playbooks</a></p>
+</section>
+<section aria-labelledby="featured-heading">
+  <h2 id="featured-heading">Published Playbooks</h2>
+  {% if playbooks %}<ul class="card-list">
+    {% for item in playbooks %}<li>{% if item.current_published_revision.cover_asset %}<img class="cover-thumb" src="{{ item.current_published_revision.cover_asset|cover_url }}" alt="" width="1200" height="630" loading="lazy">{% endif %}<a href="{% url 'playbook-detail' item.slug %}">{{ item.current_published_revision.title }}</a></li>{% endfor %}
+  </ul>{% else %}<p class="empty-state">There are no published Playbooks yet. Check back as learning is added.</p>{% endif %}
+</section>
+{% endblock %}

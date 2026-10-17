@@ -1,0 +1,12 @@
+{% extends 'content/base.html' %}
+{% load covers %}
+{% block title %}{{ revision.title }} — MaliLab{% endblock %}
+{% block content %}<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'home' %}">Home</a><a href="{% url 'playbook-list' %}">Playbooks</a><span aria-current="page">{{ revision.title }}</span></nav>
+<article class="reading"><h1>{{ revision.title }}</h1>
+{% if revision.cover_asset %}<img class="cover-image" src="{{ revision.cover_asset|cover_url }}" alt="{{ revision.cover_asset|cover_alt }}" width="1200" height="630">{% endif %}
+{% if revision.summary %}<p class="lead">{{ revision.summary }}</p>{% endif %}
+{% include "content/_playbook_guide.html" %}
+<section aria-labelledby="recommendations-heading"><h2 id="recommendations-heading">{% if recommendations %}Go deeper: recommended modules{% else %}Recommended Modules{% endif %}</h2>
+{% if recommendations %}<ol class="card-list">{% for row in recommendations %}<li><a href="{% url 'module-detail' row.module_revision.module.slug %}?playbook={{ identity.slug|urlencode }}">{{ row.module_revision.title }}</a>{% if row.rationale %}<p>{{ row.rationale }}</p>{% endif %}</li>{% endfor %}</ol>
+{% else %}<p class="empty-state">There are no published Module recommendations available yet.</p>{% endif %}</section>
+</article>{% endblock %}

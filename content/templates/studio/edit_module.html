@@ -1,0 +1,14 @@
+{% extends "studio/base.html" %}
+{% block title %}{% if creating %}New module{% else %}Edit module{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if creating %}New module{% else %}Edit module{% endif %}</h1>
+<p>A module is a short learning path: the lessons to read and the practice to do, in order. Tick what belongs, and number the order (1 comes first).</p>
+<form method="post" class="studio-form" novalidate>
+  {% csrf_token %}
+  {% include "studio/_errors.html" %}
+  {% include "studio/_fields.html" %}
+  {% include "studio/_picker.html" with picker_title="What the learner does" picker_help="Required items must be finished for the module to count as complete." with_classification=True %}
+  <button class="studio-button" type="submit">Save draft</button>
+  {% if revision %}<a href="{% url 'studio-revision' kind revision.pk %}">Cancel</a>{% else %}<a href="{% url 'studio-home' %}">Cancel</a>{% endif %}
+</form>
+{% endblock %}

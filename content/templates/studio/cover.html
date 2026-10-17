@@ -1,0 +1,46 @@
+{% extends "studio/base.html" %}
+{% load covers %}
+{% block title %}Cover image{% endblock %}
+{% block content %}
+<p class="eyebrow">Playbook · revision {{ rev.revision_number }}</p>
+<h1>Cover image for &ldquo;{{ rev.title }}&rdquo;</h1>
+<p><a href="{% url 'studio-revision' 'playbook' rev.pk %}">Back to the playbook</a></p>
+{% if error %}<div class="studio-errors" role="alert"><p>{{ error }}</p></div>{% endif %}
+
+<section class="studio-card" aria-labelledby="current-cover">
+  <h2 id="current-cover">Current cover</h2>
+  {% if rev.cover_asset %}
+    <img class="cover-image" src="{{ rev.cover_asset|cover_url }}" alt="{{ rev.cover_asset|cover_alt }}" width="1200" height="630">
+    <p class="row-meta">Description for screen readers: {{ rev.cover_asset|cover_alt }}</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="do" value="remove"><button class="studio-button secondary" type="submit">Remove the cover</button></form>
+  {% else %}
+    <p class="studio-empty">No cover yet. Playbooks work fine without one.</p>
+  {% endif %}
+</section>
+
+<section class="studio-card" aria-labelledby="ai-cover">
+  <h2 id="ai-cover">Let the AI design one</h2>
+  <p>The AI reads the title, summary and situation, then picks a picture, colours and background from MaliLab&rsquo;s own artwork. Save the playbook&rsquo;s details first so it has something to read.</p>
+  {% if ai_ready %}
+  <form method="post">{% csrf_token %}<input type="hidden" name="do" value="ai"><button class="studio-button" type="submit">{% if rev.cover_asset %}Design another{% else %}Design a cover{% endif %}</button></form>
+  {% else %}<p class="studio-empty">The AI assistant is not switched on yet. You can still choose a design yourself below.</p>{% endif %}
+</section>
+
+<section class="studio-card" aria-labelledby="own-cover">
+  <h2 id="own-cover">Choose a design yourself</h2>
+  <form method="post" class="studio-form" novalidate>{% csrf_token %}<input type="hidden" name="do" value="manual">
+    {% if manual_form.errors %}<div class="studio-errors" role="alert"><p>Please fix the highlighted fields.</p></div>{% endif %}
+    {% include "studio/_fields.html" with form=manual_form %}
+    <button class="studio-button" type="submit">Use this design</button>
+  </form>
+</section>
+
+<section class="studio-card" aria-labelledby="upload-cover">
+  <h2 id="upload-cover">Upload your own picture</h2>
+  <form method="post" enctype="multipart/form-data" class="studio-form" novalidate>{% csrf_token %}<input type="hidden" name="do" value="upload">
+    {% if upload_form.errors %}<div class="studio-errors" role="alert"><p>Please fix the highlighted fields.</p></div>{% endif %}
+    {% include "studio/_fields.html" with form=upload_form %}
+    <button class="studio-button" type="submit">Upload</button>
+  </form>
+</section>
+{% endblock %}

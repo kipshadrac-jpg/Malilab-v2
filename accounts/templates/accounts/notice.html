@@ -1,0 +1,10 @@
+{% extends "content/base.html" %}
+{% block title %}{{ heading }} · MaliLab{% endblock %}
+{% block content %}
+<section class="auth-panel" aria-labelledby="page-heading">
+  <p class="eyebrow">Your MaliLab account</p>
+  <h1 id="page-heading">{{ heading }}</h1>
+  {% for line in paragraphs %}<p>{{ line }}</p>{% endfor %}
+  {% if links %}<p>{% for url, label in links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+</section>
+{% endblock %}

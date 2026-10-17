@@ -1,0 +1,27 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Home{% endblock %} · MaliLab Studio</title>
+  <link rel="stylesheet" href="{% static 'content/studio.css' %}">
+  <link rel="stylesheet" href="{% static 'content/lesson.css' %}">
+</head>
+<body class="studio">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="studio-header">
+    <a class="studio-brand" href="{% url 'studio-home' %}">MaliLab Studio</a>
+    <nav aria-label="Studio">
+      <a href="{% url 'studio-home' %}">My work</a>
+      <a href="{% url 'home' %}">Public site</a>
+      <span class="studio-user">{{ request.user.email }} · {{ role_labels }}</span>
+      <form class="studio-signout" method="post" action="{% url 'otp_admin:logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1">
+    {% if messages %}<ul class="studio-messages" role="status">{% for message in messages %}<li class="msg-{{ message.level_tag }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

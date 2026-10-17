@@ -1,0 +1,7 @@
+{% extends "content/base.html" %}
+{% block title %}{{ revision.title }} · MaliLab{% endblock %}
+{% block content %}
+<article class="reading-column"><h1>{{ revision.title }}</h1>{% if revision.instructions %}<p>{{ revision.instructions }}</p>{% endif %}{% if revision.prompt %}<p>{{ revision.prompt }}</p>{% endif %}
+{% if open_attempts %}<h2>Resume an attempt</h2><ul>{% for attempt in open_attempts %}<li><a href="{% url 'practice-attempt' attempt.pk %}">Resume {{ attempt.practice_revision.title }} revision {{ attempt.practice_revision.revision_number }}</a></li>{% endfor %}</ul>{% endif %}
+{% if user.is_authenticated and user.can_use_personal_features %}<form method="post" action="{% url 'practice-start' identity.slug %}">{% csrf_token %}<button type="submit">Start Practice</button></form>{% elif user.is_authenticated %}<p>A verified active account is required to start this Practice.</p>{% else %}<p><a href="{% url 'sign-in' %}?next={{ request.path|urlencode }}">Sign in to start</a></p>{% endif %}</article>
+{% endblock %}

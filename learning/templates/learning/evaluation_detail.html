@@ -1,0 +1,28 @@
+{% extends "content/base.html" %}
+{% block title %}Evaluate attempt · MaliLab{% endblock %}
+{% block content %}
+<article class="reading-column">
+  <p><a href="{% url 'staff-evaluations' %}">&larr; Back to queue</a></p>
+  <h1>{{ attempt.practice_revision.title }}</h1>
+  <p>Practice revision {{ attempt.practice_revision.revision_number }} · submitted {{ attempt.submitted_at|date:"Y-m-d H:i" }} UTC</p>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <h2>Learner answers</h2>
+  <dl>{% for item in answers %}<dt>{{ item.label }}</dt><dd>{{ item.value }}</dd>{% empty %}<dd>No answers were recorded.</dd>{% endfor %}</dl>
+  <h2>Previous decisions</h2>
+  <ul>{% for e in evaluations %}<li>{{ e.state }} · {{ e.evaluated_at|date:"Y-m-d H:i" }} UTC</li>{% empty %}<li>None yet.</li>{% endfor %}</ul>
+  <h2>Record a decision</h2>
+  {% if requirements %}
+  <form method="post">{% csrf_token %}
+    <label for="requirement">Module requirement</label>
+    <select id="requirement" name="requirement" required>
+      {% for r in requirements %}<option value="{{ r.pk }}">{{ r.module_revision.title }} (rev {{ r.module_revision.revision_number }}) · {{ r.classification }}</option>{% endfor %}
+    </select>
+    <label for="decision">Decision</label>
+    <select id="decision" name="decision" required><option value="accepted">Accept</option><option value="rejected">Reject</option></select>
+    <label for="note">Internal note (optional)</label>
+    <textarea id="note" name="note" maxlength="1000" rows="3"></textarea>
+    <button type="submit">Record decision</button>
+  </form>
+  {% else %}<p>No active Module requirement uses this Practice revision.</p>{% endif %}
+</article>
+{% endblock %}

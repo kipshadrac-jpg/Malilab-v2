@@ -1,0 +1,5 @@
+{% extends 'content/base.html' %}
+{% block title %}Modules — MaliLab{% endblock %}
+{% block content %}<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'home' %}">Home</a><span aria-current="page">Modules</span></nav><h1>Modules</h1>
+{% if modules %}<ul class="card-list">{% for item in modules %}<li><a href="{% url 'module-detail' item.slug %}">{{ item.current_published_revision.title }}</a>{% if item.current_published_revision.description %}<p>{{ item.current_published_revision.description }}</p>{% endif %}</li>{% endfor %}</ul>
+{% else %}<p class="empty-state">There are no published Modules yet.</p>{% endif %}{% endblock %}

@@ -1,0 +1,33 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MaliLab public learning library">
+  <title>{% block title %}MaliLab{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'content/site.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="{% url 'home' %}" aria-label="MaliLab home">MaliLab</a>
+    <nav aria-label="Main navigation">
+      <a href="{% url 'playbook-list' %}">Playbooks</a>
+      <a href="{% url 'module-list' %}">Modules</a>
+      <a href="{% url 'search' %}">Search</a>
+      {% if user.is_authenticated and user.can_use_personal_features %}
+        <a href="{% url 'my-plans' %}">My Plan</a>
+        <a href="{% url 'progress' %}">Progress</a>
+        <a href="{% url 'notes' %}">Notes</a>
+        <span class="account-identity">{{ user.email }}</span>
+        <form class="sign-out-form" method="post" action="{% url 'sign-out' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
+      {% else %}
+        <a href="{% url 'sign-in' %}">Sign in</a>
+        <a href="{% url 'register' %}">Create account</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
+  <footer class="site-footer"><p>MaliLab · Learn at your own pace</p></footer>
+</body>
+</html>

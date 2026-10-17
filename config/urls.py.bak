@@ -1,0 +1,36 @@
+from django.urls import path
+from django_otp.admin import OTPAdminSite
+from content import views as content_views
+from accounts import views as account_views
+from practice import views as practice_views
+from learning import views as learning_views
+from planning import views as planning_views
+from discovery import views as discovery_views
+
+admin_site = OTPAdminSite(name='otp_admin')
+urlpatterns = [
+    path('sign-in/', account_views.sign_in, name='sign-in'),
+    path('sign-out/', account_views.sign_out, name='sign-out'),
+    path('', content_views.home, name='home'),
+    path('playbooks/', content_views.playbook_list, name='playbook-list'),
+    path('playbooks/<slug:slug>/', content_views.playbook_detail, name='playbook-detail'),
+    path('modules/', content_views.module_list, name='module-list'),
+    path('modules/<slug:slug>/', content_views.module_detail, name='module-detail'),
+    path('modules/<slug:slug>/completion/', learning_views.record_module_completion, name='module-completion'),
+    path('lessons/<slug:slug>/', content_views.lesson_detail, name='lesson-detail'),
+    path('lessons/<slug:slug>/notes/', learning_views.notes, name='lesson-notes'),
+    path('notes/', learning_views.notes, name='notes'),
+    path('notes/<int:note_id>/source/', learning_views.note_source, name='note-source'),
+    path('progress/', learning_views.progress, name='progress'),
+    path('my-plan/', planning_views.my_plans, name='my-plans'),
+    path('my-plan/<int:plan_id>/', planning_views.plan_revisions, name='plan-revisions'),
+    path('search/', discovery_views.search, name='search'),
+    path('practice/<slug:slug>/', practice_views.activity, name='practice-activity'),
+    path('practice/<slug:slug>/attempts/', practice_views.start, name='practice-start'),
+    path('practice/attempts/<int:attempt_id>/', practice_views.attempt, name='practice-attempt'),
+    path('practice/attempts/<int:attempt_id>/responses/', practice_views.save, name='practice-save'),
+    path('practice/attempts/<int:attempt_id>/submit/', practice_views.submit, name='practice-submit'),
+    path('practice/attempts/<int:attempt_id>/submitted/', practice_views.submitted, name='practice-submitted'),
+    path('practice-unavailable/', practice_views.unavailable, name='practice-unavailable'),
+    path('admin/', admin_site.urls),
+]

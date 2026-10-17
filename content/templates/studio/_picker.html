@@ -1,0 +1,20 @@
+<h2>{{ picker_title }}</h2>
+<p>{{ picker_help }}</p>
+<div class="table-wrap"><table class="picker">
+  <caption class="sr-only">{{ picker_title }}</caption>
+  <thead><tr><th scope="col">Use</th><th scope="col">Item</th><th scope="col">Order</th>{% if with_classification %}<th scope="col">Role</th>{% else %}<th scope="col">Why it is recommended</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for c in candidates %}
+  <tr>
+    <td><input type="checkbox" id="inc_{{ c.key }}" name="inc_{{ c.key }}"{% if c.selected %} checked{% endif %}><label for="inc_{{ c.key }}"><span class="sr-only">Use {{ c.title }}</span></label></td>
+    <td><strong>{{ c.title }}</strong><br><span class="row-meta">{{ c.kind_label }} · {{ c.slug }}</span></td>
+    <td><label class="sr-only" for="pos_{{ c.key }}">Order for {{ c.title }}</label><input id="pos_{{ c.key }}" name="pos_{{ c.key }}" type="number" min="1" max="999" inputmode="numeric" value="{% if c.selected %}{{ c.position }}{% endif %}"></td>
+    {% if with_classification %}
+    <td><label class="sr-only" for="cls_{{ c.key }}">Role of {{ c.title }}</label><select id="cls_{{ c.key }}" name="cls_{{ c.key }}">{% for value, label in classifications %}<option value="{{ value }}"{% if value == c.classification %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+    {% else %}
+    <td><label class="sr-only" for="rat_{{ c.key }}">Why {{ c.title }} is recommended</label><input id="rat_{{ c.key }}" name="rat_{{ c.key }}" type="text" maxlength="500" value="{{ c.rationale }}"></td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>

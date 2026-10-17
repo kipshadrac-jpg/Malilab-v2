@@ -1,0 +1,36 @@
+{% extends "studio/base.html" %}
+{% block title %}{% if creating %}New practice activity{% else %}Edit practice activity{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if creating %}New practice activity{% else %}Edit practice activity{% endif %}</h1>
+<p>A practice activity is a short set of questions a learner answers and submits. A staff member then reviews the answers; nothing is scored automatically.</p>
+<form method="post" class="studio-form" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="row_count" value="{{ row_count }}">
+  {% include "studio/_errors.html" %}
+  {% include "studio/_fields.html" %}
+  <h2>Questions</h2>
+  <p>Leave a row empty to skip it. For &ldquo;pick one&rdquo; or &ldquo;pick several&rdquo;, type one option per line.</p>
+  {% for row in rows %}
+  <fieldset class="studio-question">
+    <legend>Question {{ row.n }}</legend>
+    <input type="hidden" name="q{{ row.i }}_id" value="{{ row.id }}">
+    <div class="studio-field"><label for="q{{ row.i }}_label">Question {{ row.n }} text</label>
+      <input id="q{{ row.i }}_label" name="q{{ row.i }}_label" type="text" maxlength="500" value="{{ row.label }}"></div>
+    <div class="studio-field"><label for="q{{ row.i }}_type">Question {{ row.n }} type</label>
+      <select id="q{{ row.i }}_type" name="q{{ row.i }}_type">{% for value, label in question_types %}<option value="{{ value }}"{% if value == row.type %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="studio-field"><label for="q{{ row.i }}_options">Question {{ row.n }} options, one per line (for the pick types)</label>
+      <textarea id="q{{ row.i }}_options" name="q{{ row.i }}_options" rows="3">{{ row.options }}</textarea></div>
+    <div class="studio-pair">
+      <div class="studio-field"><label for="q{{ row.i }}_min">Question {{ row.n }} smallest value (numbers only, optional)</label>
+        <input id="q{{ row.i }}_min" name="q{{ row.i }}_min" type="text" inputmode="decimal" value="{{ row.min }}"></div>
+      <div class="studio-field"><label for="q{{ row.i }}_max">Question {{ row.n }} largest value, or longest answer (optional)</label>
+        <input id="q{{ row.i }}_max" name="q{{ row.i }}_max" type="text" inputmode="decimal" value="{{ row.max }}"></div>
+    </div>
+    <label class="studio-check"><input type="checkbox" name="q{{ row.i }}_required"{% if row.required %} checked{% endif %}> Question {{ row.n }} must be answered</label>
+  </fieldset>
+  {% endfor %}
+  <p><button class="studio-button secondary" type="submit" name="add_rows" value="1">Add 5 more question rows</button></p>
+  <button class="studio-button" type="submit">Save draft</button>
+  {% if revision %}<a href="{% url 'studio-revision' kind revision.pk %}">Cancel</a>{% else %}<a href="{% url 'studio-home' %}">Cancel</a>{% endif %}
+</form>
+{% endblock %}

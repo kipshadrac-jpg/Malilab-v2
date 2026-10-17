@@ -1,0 +1,23 @@
+{% extends "content/base.html" %}
+{% block title %}Sign in · MaliLab{% endblock %}
+{% block content %}
+<section class="auth-panel" aria-labelledby="sign-in-heading">
+  <p class="eyebrow">Your MaliLab account</p>
+  <h1 id="sign-in-heading">Sign in</h1>
+  <p>Sign in to use personal learning features. You can continue reading without an account.</p>
+  <form method="post" action="{% url 'sign-in' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_destination }}">
+    {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-errors" role="alert">{{ field.errors }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <button class="button-link auth-submit" type="submit">Sign in</button>
+  </form>
+  <p><a href="{% url 'register' %}">Create an account</a> · <a href="{% url 'forgot-password' %}">Forgot your password?</a></p>
+</section>
+{% endblock %}

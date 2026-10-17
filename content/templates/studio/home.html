@@ -1,0 +1,41 @@
+{% extends "studio/base.html" %}
+{% block title %}My work{% endblock %}
+{% block content %}
+<h1>Your work</h1>
+{% if create_options %}
+<section class="studio-card" aria-labelledby="make-new">
+  <h2 id="make-new">Make something new</h2>
+  {% if ai_link %}<p><a class="studio-button" href="{% url 'studio-ai' %}">Draft with AI</a> Describe what you want and let the AI write the first draft.</p>{% endif %}
+  <p>Suggested order: lessons and practice first, then a module that gathers them, then a playbook that recommends modules.</p>
+  <ul class="studio-buttons">
+    {% for option in create_options %}
+      <li>{% if option.enabled %}<a class="studio-button" href="{{ option.url }}">{{ option.label }}</a>{% else %}<span class="studio-button is-off">{{ option.label }}</span><span class="row-meta">{{ option.hint }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% for section in sections %}
+  {% if section.items or not section.hide_if_empty %}
+  <section class="studio-card" aria-labelledby="sec-{{ forloop.counter }}">
+    <h2 id="sec-{{ forloop.counter }}">{{ section.title }} <span class="count">{{ section.items|length }}</span></h2>
+    <p>{{ section.intro }}</p>
+    {% if section.items %}<ul class="studio-list">{% for i in section.items %}{% include "studio/_row.html" %}{% endfor %}</ul>{% else %}<p class="studio-empty">{{ section.empty }}</p>{% endif %}
+  </section>
+  {% endif %}
+{% endfor %}
+{% if admin_overview %}
+<section class="studio-card" aria-labelledby="overview">
+  <h2 id="overview">Overview</h2>
+  <div class="table-wrap"><table>
+    <caption>Content by state</caption>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Drafts</th><th scope="col">In review</th><th scope="col">Returned</th><th scope="col">Published</th></tr></thead>
+    <tbody>{% for row in admin_overview %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.draft }}</td><td>{{ row.in_review }}</td><td>{{ row.returned }}</td><td>{{ row.published }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <h3>Recent publications</h3>
+  {% if recent %}<ul class="studio-list">{% for r in recent %}<li class="studio-row"><span class="row-title">{{ r.what }}</span><span class="row-meta">{{ r.when|date:"j M Y, H:i" }} · {{ r.who }}</span></li>{% endfor %}</ul>{% else %}<p class="studio-empty">Nothing has been published yet.</p>{% endif %}
+  <h3>Staff accounts</h3>
+  <ul class="studio-list">{% for s in staff %}<li class="studio-row"><span class="row-title">{{ s.email }}</span><span class="row-meta">{{ s.roles }}</span></li>{% endfor %}</ul>
+  <p>The technical admin is still available at <a href="{% url 'otp_admin:index' %}">/admin/</a> for account and permission changes.</p>
+</section>
+{% endif %}
+{% endblock %}

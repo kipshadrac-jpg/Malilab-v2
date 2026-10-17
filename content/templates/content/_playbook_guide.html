@@ -1,0 +1,9 @@
+{% load static playbook_guide %}<link rel="stylesheet" href="{% static 'content/playbook.css' %}">
+{% with g=revision|guide %}<div class="pg">
+{% if revision.scenario %}<section class="pg-goal" aria-labelledby="pg-goal-h"><h2 class="pg-label" id="pg-goal-h"><span class="pg-icon" aria-hidden="true">◎</span> Goal</h2>{{ revision.scenario|guide_text }}</section>{% endif %}
+{% if g.needs %}<section class="pg-needs" aria-labelledby="pg-needs-h"><h2 class="pg-label" id="pg-needs-h"><span class="pg-icon" aria-hidden="true">✓</span> What you need</h2>
+<ul class="pg-needlist">{% for n in g.needs %}<li class="pg-c{{ n.tone }}"><span class="pg-tick" aria-hidden="true">✓</span><span>{{ n.html }}</span></li>{% endfor %}</ul></section>{% endif %}
+{% if g.steps %}<section class="pg-stepsection" aria-labelledby="pg-steps-h"><h2 class="pg-label" id="pg-steps-h"><span class="pg-icon" aria-hidden="true">➜</span> Steps <span class="pg-count">{{ g.steps|length }} to follow</span></h2>
+<ol class="pg-steps">{% for s in g.steps %}<li class="pg-step pg-c{{ s.tone }}"><span class="pg-num" aria-hidden="true">{{ s.n }}</span><div class="pg-body"><h3>{{ s.title }}{% if s.optional %} <span class="pg-chip">Optional</span>{% endif %}</h3>{{ s.html }}</div></li>{% endfor %}</ol></section>{% endif %}
+{% if g.outcome %}<section class="pg-outcome" aria-labelledby="pg-out-h"><h2 class="pg-label" id="pg-out-h"><span class="pg-icon" aria-hidden="true">★</span> Where this leaves you</h2>{{ g.outcome }}</section>{% endif %}
+</div>{% endwith %}

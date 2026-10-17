@@ -1,0 +1,14 @@
+{% extends "studio/base.html" %}
+{% block title %}Draft with AI{% endblock %}
+{% block content %}
+<h1>Draft with AI</h1>
+<p>Describe what you want and the AI writes a first draft in MaliLab&rsquo;s skimmable style: short paragraphs, coloured subheadings, bold key points, lists, tables and boxes. It is saved as a normal draft. You edit it, then it goes through the usual review and approval.</p>
+<form method="post" class="studio-form" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="studio-errors" role="alert"><p>{{ form.non_field_errors|join:" " }}</p></div>{% endif %}
+  {% include "studio/_fields.html" %}
+  <p class="row-meta">Writing a lesson can take up to two minutes. Please stay on this page until it finishes.</p>
+  <button class="studio-button" type="submit">Create the draft</button>
+  <a href="{% url 'studio-home' %}">Cancel</a>
+</form>
+{% endblock %}

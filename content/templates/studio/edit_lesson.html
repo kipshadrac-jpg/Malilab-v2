@@ -1,0 +1,13 @@
+{% extends "studio/base.html" %}
+{% block title %}{% if creating %}New lesson{% else %}Edit lesson{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if creating %}New lesson{% else %}Edit lesson{% endif %}</h1>
+{% include 'studio/_lesson_help.html' %}
+<form method="post" class="studio-form" novalidate>
+  {% csrf_token %}
+  {% include "studio/_errors.html" %}
+  {% include "studio/_fields.html" %}
+  <button class="studio-button" type="submit">Save draft</button>
+  {% if revision %}<a href="{% url 'studio-revision' kind revision.pk %}">Cancel</a>{% else %}<a href="{% url 'studio-home' %}">Cancel</a>{% endif %}
+</form>
+{% endblock %}

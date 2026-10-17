@@ -1,0 +1,81 @@
+# Django Model Specifications
+
+**Status:** Physical proposal, expressed as tables and rules only; not Python model code.
+
+All tables use `bigint` PK, `created_at`/`updated_at` only when meaningful, explicit FK names, and explicit ordering. Immutable records have `created_at` but no misleading mutable `updated_at`. Full per-field PostgreSQL mapping is in `FIELD_SPECIFICATIONS.md`; constraints/indexes in companion documents. Django `on_delete` guidance: `PROTECT` for history, `CASCADE` only for true owned children after deletion policy permits, `SET_NULL` only for optional actor attribution where preserving the event is more important than identity, and `RESTRICT`/`PROTECT` for referenced records.
+
+| Model → table | Purpose / owner / lifecycle | Principal fields and relationships | Key physical rules |
+|---|---|---|---|
+| `UserAccount` → `accounts_useraccount` | Custom Django user model/stable account identity; email/password initial auth; verified email for full personal functionality | Normalized unique email, password credential managed by Django, email verification state/time, access/account state and timestamps; parent of private records | Custom user selected before first migration. Django server-side sessions and email recovery. Anonymous reading creates no account. No phone/OTP or social login initially. |
+| `Playbook` → `content_playbook` | Stable editorial identity | slug, state, current published revision nullable FK to `PlaybookRevision` | Unique normalized slug; pointer must reference same identity and published revision. Circular FK may be set after revision insert in service transaction. |
+| `PlaybookRevision` → `content_playbook_revision` | Immutable Playbook snapshot | playbook FK, revision number, state, title/summary/scenario/audience/assumptions/outcome/discovery metadata, cover FK | Unique `(playbook, revision_number)`; exact source snapshots and recommendations; PROTECT once referenced. |
+| `Module` → `content_module` | Stable editorial identity | slug/state/current published revision | Same identity/pointer rule. |
+| `ModuleRevision` → `content_module_revision` | Immutable curriculum snapshot | module FK, revision number, title/description/cover/effort/prerequisite and related metadata | Unique sequence; owns requirements/topics/source snapshots. |
+| `Lesson` → `content_lesson` | Stable editorial identity, reusable via membership | slug/state/current revision | Lesson belongs to no single Module; module membership is requirement relation. |
+| `LessonRevision` → `content_lesson_revision` | Immutable authored snapshot | lesson FK, revision number, title/summary, content schema version, structured blocks JSONB, state | Unique sequence; blocks validated and key/order unique within revision; historical renderer support. |
+| `ModuleLearningRequirement` → `content_module_requirement` | Revision-local ordered requirement | module revision FK, target kind, exact LessonRevision or PracticeRevision FK, classification, position, completion condition key, active | CHECK exactly one target FK matches kind; unique order and target per revision; immutable after publication. |
+| `PlaybookModuleRecommendation` → `content_playbook_module_recommendation` | Revision-local recommendation | PlaybookRevision FK, exact ModuleRevision FK, position, rationale, active | Unique order and target within Playbook revision. |
+| `RelatedContentRelationship` → `content_related_relationship` | Curated related-revision edge | source and target revision references, kind, order, rationale | Same type-safe target registry approach as journey references or narrowly enumerated source/target FK pairs; reject self-edge if policy applies. Physical edge representation is PROPOSED. |
+| `Topic` → `content_topic` | Basic taxonomy | name, normalized slug, description, state | Unique slug; taxonomy depth not assumed. |
+| `ContentTopicAssignment` → `content_content_topic` | Revision-topic association | exact content revision target, topic FK, role, position | Unique exact revision/topic/role. Use a controlled target association if shared multi-content typing is needed. |
+| `PracticeActivity` → `content_practice_activity` | Stable authored activity identity | slug/state/current revision | Exact revision references only. |
+| `PracticeActivityRevision` → `content_practice_revision` | Immutable activity/prompt/input contract | activity FK, revision number, prompt/instructions, response schema JSONB, tool references, safety text, state | Versioned bounded schema; unique sequence. |
+| `PracticeAttempt` → `practice_attempt` | User-owned submitted/saved exploration | owner FK, exact PracticeRevision FK, optional Journey FK, state, start/submit times, response summary JSONB | Owner immutable; submitted snapshot immutable; PROTECT revision; saved calculation results are zero-many via result FK. |
+| `PracticeResponse` → `practice_response` | User-owned answer value child | attempt FK, prompt key, typed value JSONB/string decimal, unit, answered time | Unique `(attempt, prompt_key)`; deletion only through approved account service; sensitive. |
+| `LearningJourney` → `learning_journey` | User-owned journey identity/header | owner FK, starting context JSONB, created time | No mutable current editorial payload; owned by account. |
+| `JourneyStep` → `learning_journey_step` | Append-only ordered milestone | journey FK, target-ref FK, sequence, step type/state, occurred/recorded times, metadata JSONB | Unique `(journey, sequence)`; no update/delete through normal app. |
+| `JourneyTargetRef` → `learning_journey_target` | Controlled polymorphic target registry; implementation adapter | kind, owner FK nullable for editorial targets, created time | JourneyStep FK points here. One typed association row maps to exact target record; target record FK is PROTECT. |
+| `JourneyTarget{Kind}` → `learning_journey_target_{kind}` | Per-kind one-to-one target association (e.g. PlaybookRevision, PracticeAttempt, CalculationResult, PlanRevision) | target-ref one-to-one FK plus concrete target FK | Unique target; service ensures exactly one association and owner match; new kind adds association model/table, not JourneyStep column. No arbitrary ContentType/GFK. |
+| `LabTool` → `calculations_lab_tool` | Editorial tool identity | slug/title/state/description | No calculation logic in content rendering. |
+| `CalculatorDefinition` → `calculations_definition` | Stable calculator contract | LabTool FK, slug, contract/schema version, current FormulaVersion pointer | Unique tool/key; current pointer must be active and belong to definition. |
+| `FormulaVersion` → `calculations_formula_version` | Immutable governed method/formula | definition FK, version key, state, artifact/method identifier+checksum, assumptions/test/source/methodology JSONB, rounding key | Unique version; state transitions through service; referenced formulas PROTECT. |
+| `FormulaApproval` → `calculations_formula_approval` | Append-only governance event | formula FK, actor FK, action, role snapshot, occurred time, test/source evidence refs, note | No update/delete; approval/activation gate validated transactionally. |
+| `CalculationResult` → `calculations_result` | User-owned reproducible saved result | owner FK, formula FK, optional PracticeAttempt FK, input/assumption/output/source/warning JSONB, units/currency, precision/method keys, calculated time | Immutable; result links to zero/one attempt, attempt has zero-many results; exact decimals serialized as strings. |
+| `MyPlan` → `planning_plan` | User-owned stable plan container | owner FK, status, current PlanRevision FK nullable, timestamps | 0..N plans per user; no one-active uniqueness until policy decided. |
+| `PlanRevision` → `planning_plan_revision` | Immutable thinking snapshot | plan FK, number, predecessor self-FK nullable, target/assumption/path JSONB, exact optional journey/practice/calculation/content references, created time | Unique `(plan, number)`; predecessor same plan/lower number; no cycles; owner refs same account. |
+| `Note` → `learning_note` | Private note/highlight | owner FK, kind, body, exact LessonRevision FK, optional block key/anchor JSONB, journey FK, timestamps | PROTECT exact revision; anchor schema-versioned with exact revision/block/quote and optional hint offsets; never reanchor across revisions. |
+| `LessonCompletion` → `learning_lesson_completion` | User-scoped explainable lesson evidence | owner FK, exact LessonRevision FK, optional requirement/journey refs, evidence kind, completed time | Immutable decision/evidence; duplicate/reassessment policy open. |
+| `RequirementEvidence` → `learning_requirement_evidence` | Exact attempt-to-requirement evidence association | owner FK, ModuleRevision FK, requirement FK, PracticeRevision FK, PracticeAttempt FK, state/timestamps/context JSONB, optional supersedes/predecessor FK | Unique `(attempt, requirement)`; all revisions/owners match. Initial rule: one accepted attempt satisfies one requirement only; each association is explicit. Corrections/reassessment preserve prior evidence. |
+| `ModuleCompletion` → `learning_module_completion` | Explainable evaluation snapshot | owner FK, exact ModuleRevision FK, evaluated time/outcome, requirement/evidence snapshot JSONB, journey FK | Immutable; snapshot includes every required item and selected exact evidence. |
+| `AchievementDefinition` → `content_achievement_definition` | Editorial stable definition | slug/current revision FK/state | Criteria thresholds remain TBD. |
+| `AchievementDefinitionRevision` → `content_achievement_revision` | Immutable badge definition | definition FK, revision number, name/description/criteria key/state | Unique sequence; allow-listed criteria only. |
+| `UserAchievement` → `learning_user_achievement` | Durable user award | owner FK, definition revision FK, award time, exact ModuleCompletion/PlanRevision refs, evidence JSONB | Immutable; duplicate/revocation policy remains future product detail; no award may be issued before approved criteria exist. |
+| `Source` → `content_source` | Mutable catalog entry | identity/title/url/publication date/version/current metadata | Editorial access only; never historical source by itself. |
+| `SourceSnapshot` → `content_source_snapshot` | Immutable provenance for exact revision | Source FK PROTECT, source identity/title/url/date/access/version snapshot, exact content/formula revision reference, reviewer FK, reviewed time | Snapshot remains readable after catalog edits; unknown source dates remain null, never fabricated. |
+| `EditorialReview` → `content_editorial_review` | Append-only review decision | exact immutable revision ref, reviewer, role snapshot, action, occurred time, private comment | Edits after approval require renewed review and approval. |
+| `PublicationEvent` → `content_publication_event` | Append-only publish/supersede/retire history | identity/revision typed target, actor, role snapshot, action, time | Financial-content approver differs from author; preserve actor, role, revision and time. Never infer history from current pointer alone. |
+| `SearchProjection` → `discovery_search_projection` | Rebuildable published-only projection | exact content revision reference, type, searchable text/tsvector, filter metadata JSONB, schema/indexed time | Unique projection purpose+revision; excludes private and draft data. |
+| `MediaAsset` → `content_media_asset` | Immutable file/reference version and metadata | opaque storage key, kind, mime, size, checksum, attribution/rights metadata, state | Proposed immutable version-per-row; replace by new row. Do not overwrite/delete referenced bytes. |
+| `DictionaryTerm`, `DictionaryDefinitionRevision` | Future editorial concepts | stable identity and immutable definitions | No initial tables unless approved scope changes. |
+
+### Cross-row rule implementation
+
+Use service-layer transactional checks for same-owner constraints across multiple foreign keys, current-pointer state, journey-target subtype existence, evidence matching, formula lifecycle, and snapshot immutability. Add database constraints where local fields permit. Never use `GenericForeignKey` as a substitute for referential integrity on historical data.
+
+## Explicit relationship naming and deletion map
+
+Every FK in the eventual implementation must set an explicit, domain-readable reverse name; Django's implicit `model_set` names are not used. Names below are the required reverse accessor convention. `PROTECT` is the default for historical references, not an account-deletion policy.
+
+| FK source → target | Reverse name on target | Proposed on_delete | Rule |
+|---|---|---|---|
+| EditorialRevision → stable identity | `revisions` | `PROTECT` | Retire identity; preserve every referenced revision. |
+| Stable identity → current revision pointer | `current_for_<identity>` (one-to-one nullable pointer semantics) | `SET_NULL` only when revision retires/depublication is allowed; otherwise `PROTECT` | Clear pointer transactionally; never delete revision. Avoid reverse-name collision with revisions collection. |
+| ModuleLearningRequirement → ModuleRevision | `learning_requirements` | `PROTECT` | Requirement set belongs to immutable revision. |
+| Requirement → LessonRevision / PracticeRevision | `module_requirements` | `PROTECT` | Target revision history must survive. |
+| Recommendation → PlaybookRevision / ModuleRevision | `module_recommendations` / `playbook_recommendations` | `PROTECT` | Preserve exact followed recommendation target. |
+| Attempt → UserAccount | `practice_attempts` | `PROTECT` | Account deletion waits for explicit policy/service. |
+| Response → Attempt | `responses` | `PROTECT` until approved user deletion workflow; then service-controlled cascade may be selected | Submitted evidence is user history. |
+| Journey → UserAccount; Step → Journey | `learning_journeys`; `steps` | `PROTECT` | Append-only user history; no implicit deletion. |
+| JourneyTarget association → exact target | `journey_target_links` | `PROTECT` | A referenced journey target must not disappear silently. |
+| CalculationResult → UserAccount / FormulaVersion | `calculation_results`; `saved_results` | `PROTECT` | Preserve private result and exact formula. |
+| CalculationResult → PracticeAttempt optional | `calculation_results` | `SET_NULL` only if attempt deletion is later approved and result remains meaningful; otherwise `PROTECT` | Does not imply a calculation is required. |
+| Plan → UserAccount; PlanRevision → Plan | `plans`; `revisions` | `PROTECT` | Account/plan deletion awaits policy; plan revision chain preserved. |
+| PlanRevision → predecessor self-reference | `successors` | `PROTECT` | Do not sever immutable chain. |
+| Note → UserAccount / LessonRevision / Journey | `notes`; `notes`; `notes` | `PROTECT` | Hybrid deletion service processes private note data by class; exact historical revision/block anchor remains available until disposition. |
+| Completion/Evidence/Award → owner and evidence targets | `lesson_completions`, `requirement_evidence`, `module_completions`, `user_achievements` on respective targets | `PROTECT` | Evidence integrity; account deletion is service-controlled after policy. |
+| SourceSnapshot → Source and revision | `snapshots`; `source_snapshots` | `PROTECT` | Catalog/source and revision identities retained while snapshots refer. |
+| Review/Publication/FormulaApproval → actor | `editorial_reviews`, `publication_events`, `formula_approvals` | `SET_NULL` only with immutable actor identifier/role snapshot and approved anonymization policy; otherwise `PROTECT` | Preserve event; actor-retention policy blocks final selection. |
+| SearchProjection → content revision | `search_projection` | `CASCADE` | Projection is rebuildable and removed when source is ineligible/deleted. |
+| Editorial revision/block → MediaAsset | `content_references` | `PROTECT` | Referenced immutable bytes cannot be removed. |
+
+For target families not shown as direct FKs, each concrete target association uses a distinct named FK and reverse relation (e.g. `journey_target_links`, `source_snapshots`, `editorial_reviews`). Before migrations, generate a complete relation checklist from this map; any omitted target must be explicitly added rather than falling back to implicit Django behavior.

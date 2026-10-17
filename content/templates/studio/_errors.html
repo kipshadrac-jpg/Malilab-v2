@@ -1,0 +1,1 @@
+{% if editor_errors or row_errors %}<div class="studio-errors" role="alert"><p>Please fix these before saving:</p><ul>{% for e in editor_errors %}<li>{{ e }}</li>{% endfor %}{% for e in row_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}

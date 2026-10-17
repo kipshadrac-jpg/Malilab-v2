@@ -1,0 +1,38 @@
+/* Skimmable lesson styling. Colours are paired with text labels, never used alone to carry meaning. */
+.lesson-rich { --c0:#0b6b57; --c1:#3b4cc0; --c2:#b0285a; --c3:#8a5200; --c4:#7a3db0; color: #202b27; }
+.lesson-rich > * { margin: 0 0 1.35em; }
+.lesson-rich p { font-size: clamp(1.08rem, 2.5vw, 1.2rem); line-height: 1.9; max-width: 62ch; overflow-wrap: anywhere; }
+.lesson-rich strong { font-weight: 750; }
+.lesson-rich h2.lh, .lesson-rich h3.lh { line-height: 1.3; margin: 2.2em 0 .7em; font-weight: 750; }
+.lesson-rich h2.lh { font-size: clamp(1.4rem, 3.5vw, 1.7rem); padding: .15em 0 .15em .7rem; border-left: .35rem solid currentColor; }
+.lesson-rich h3.lh { font-size: clamp(1.15rem, 3vw, 1.3rem); padding-bottom: .15em; border-bottom: .2rem solid currentColor; display: inline-block; }
+.lesson-rich .lh-0 { color: var(--c0); } .lesson-rich .lh-1 { color: var(--c1); } .lesson-rich .lh-2 { color: var(--c2); }
+.lesson-rich .lh-3 { color: var(--c3); } .lesson-rich .lh-4 { color: var(--c4); }
+.lesson-rich ul.ll, .lesson-rich ol.ll { padding-left: 1.5rem; line-height: 1.85; font-size: clamp(1.05rem, 2.4vw, 1.15rem); }
+.lesson-rich .ll li { margin: .45em 0; padding-left: .2rem; }
+.lesson-rich .ll-0 li::marker { color: var(--c0); } .lesson-rich .ll-1 li::marker { color: var(--c1); }
+.lesson-rich .ll-2 li::marker { color: var(--c2); } .lesson-rich .ll-3 li::marker { color: var(--c3); }
+.lesson-rich .ll-4 li::marker { color: var(--c4); }
+.lesson-rich ol.ll li::marker { font-weight: 750; }
+.lesson-rich mark.hl { color: #202b27; padding: .05em .3em; border-radius: .25em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.lesson-rich .hl-yellow { background: #fff1a0; } .lesson-rich .hl-green { background: #c4ecd2; }
+.lesson-rich .hl-blue { background: #cde2ff; } .lesson-rich .hl-pink { background: #ffd0e2; }
+.lesson-rich .hl-orange { background: #ffd9b3; }
+.lesson-rich .callout { padding: .9rem 1.1rem 1rem; border-left: .4rem solid; border-radius: .35rem; }
+.lesson-rich .callout p { margin: .3em 0 0; font-size: 1.05rem; line-height: 1.8; }
+.lesson-rich .callout-label { display: block; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; }
+.lesson-rich .callout-tip { background: #e5f5ec; border-color: #1f7a4d; } .lesson-rich .callout-tip .callout-label { color: #14603a; }
+.lesson-rich .callout-warning { background: #fdebe8; border-color: #b3261e; } .lesson-rich .callout-warning .callout-label { color: #9c1f18; }
+.lesson-rich .callout-key { background: #e8edfd; border-color: #3b4cc0; } .lesson-rich .callout-key .callout-label { color: #2f3ea3; }
+.lesson-rich .callout-example { background: #f3e9fb; border-color: #7a3db0; } .lesson-rich .callout-example .callout-label { color: #652f94; }
+.lesson-rich .callout-note { background: #fff4d6; border-color: #b9770e; } .lesson-rich .callout-note .callout-label { color: #7a4d00; }
+.lesson-rich .table-wrap { overflow-x: auto; border-radius: .35rem; border: 1px solid #d9ded8; }
+.lesson-rich table.lt { width: 100%; border-collapse: collapse; font-size: 1rem; line-height: 1.55; }
+.lesson-rich .lt th, .lesson-rich .lt td { padding: .65rem .8rem; text-align: left; vertical-align: top; border-bottom: 1px solid #e3e7e2; }
+.lesson-rich .lt th { color: #fff; font-weight: 700; }
+.lesson-rich .lt th:nth-child(5n+1) { background: var(--c0); } .lesson-rich .lt th:nth-child(5n+2) { background: var(--c1); }
+.lesson-rich .lt th:nth-child(5n+3) { background: var(--c2); } .lesson-rich .lt th:nth-child(5n+4) { background: var(--c3); }
+.lesson-rich .lt th:nth-child(5n+5) { background: var(--c4); }
+.lesson-rich .lt tbody tr:nth-child(even) td { background: #f4f7f3; }
+.lesson-rich .lt td:first-child { font-weight: 650; }
+.lesson-rich .table-wrap:focus-visible { outline: 3px solid #b05013; outline-offset: 2px; }
