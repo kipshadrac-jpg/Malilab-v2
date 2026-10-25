@@ -42,3 +42,12 @@ class UserAccount(AbstractUser):
     @property
     def can_use_personal_features(self):
         return self.is_authenticated and self.is_active and self.account_status == 'active' and self.email_verified
+
+
+class ApiToken(models.Model):
+    """A sign-in held by the mobile app. Only a hash of the token is stored."""
+    user = models.ForeignKey('accounts.UserAccount', on_delete=models.CASCADE, related_name='api_tokens')
+    key_hash = models.CharField(max_length=64, unique=True)
+    device = models.CharField(max_length=80, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(null=True, blank=True)

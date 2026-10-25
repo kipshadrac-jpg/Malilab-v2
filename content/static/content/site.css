@@ -88,3 +88,5 @@ p { max-width: 68ch; }
 /* patch12 covers */
 .cover-image { display: block; width: 100%; height: auto; border-radius: .5rem; margin: 0 0 1.5rem; background: #e8eee9; }
 .cover-thumb { display: block; width: 100%; max-width: 24rem; height: auto; border-radius: .4rem; margin: 0 0 .7rem; background: #e8eee9; }
+.billing-strip { padding: .6rem clamp(1rem, 5vw, 4rem); background: #fff4e0; color: #5a3a00; font-size: .95rem; border-bottom: 1px solid #f0dcb4; }
+.billing-strip a { margin-inline-start: .5rem; font-weight: 700; color: #5a3a00; text-decoration: underline; }

@@ -8,3 +8,8 @@ media/
 nohup.out
 *.zip
 staticfiles/
+*.log
+*.pem
+*.key
+*.sql
+service-account*.json

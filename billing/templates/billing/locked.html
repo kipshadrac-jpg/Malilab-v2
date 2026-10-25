@@ -1,0 +1,20 @@
+{% extends 'content/base.html' %}
+{% block title %}{{ title }} — MaliLab{% endblock %}
+{% block content %}
+<article class="reading">
+  <h1>{{ title }}</h1>
+  {% if summary %}<p class="lead">{{ summary }}</p>{% endif %}
+  <section aria-labelledby="locked-heading">
+    <h2 id="locked-heading">This {{ kind }} is part of a module you have not unlocked</h2>
+    <p>Pay once and keep it for good. There is no subscription and nothing is charged again.</p>
+    {% if signed_in %}
+      <ul>
+        {% for m in modules %}<li><a href="{{ m.url }}">Unlock {{ m.title }} · KES {{ price_module }}</a></li>{% endfor %}
+        <li><a href="{{ all_url }}">Unlock all modules · KES {{ price_all }}</a></li>
+      </ul>
+    {% else %}
+      <p><a href="{{ sign_in_url }}">Sign in</a> or <a href="{% url 'register' %}">create an account</a> to unlock it.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

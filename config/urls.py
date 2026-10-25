@@ -15,8 +15,18 @@ from content.studio import views as studio
 from content.studio import ai_views as studio_ai
 from content.studio import cover_views as studio_cover
 from content import media_views
+from content import api as content_api
+from content import api_modules as content_api_modules
+from accounts import api as account_api
+from learning import api as learning_api
+from learning import practice_api
+from billing import api as billing_api
+from billing import views as billing_views
+from billing import ads as billing_ads
+from notepad import api as notepad_api
 
 urlpatterns = [
+    path('app-ads.txt', billing_ads.app_ads, name='app-ads'),
     path('sign-in/', never_cache(account_views.sign_in), name='sign-in'),
     path('sign-out/', never_cache(account_views.sign_out), name='sign-out'),
     path('register/', never_cache(signup.register), name='register'),
@@ -55,5 +65,42 @@ urlpatterns = [
     path('studio/<slug:kind>/<int:rev_id>/', studio.revision, name='studio-revision'),
     path('studio/<slug:kind>/<int:rev_id>/edit/', studio.edit, name='studio-edit'),
     path('studio/<slug:kind>/<int:rev_id>/<slug:name>/', studio.act, name='studio-act'),
+    path('api/v1/playbooks/', content_api.playbook_list, name='api-playbooks'),
+    path('api/v1/playbooks/<slug:slug>/', content_api.playbook_detail, name='api-playbook'),
+    path('api/v1/modules/', content_api_modules.module_list, name='api-modules'),
+    path('api/v1/modules/<slug:slug>/', content_api_modules.module_detail, name='api-module'),
+    path('api/v1/account/code/', account_api.ask_code, name='api-account-code'),
+    path('api/v1/account/verify/', account_api.verify_code, name='api-account-verify'),
+    path('api/v1/account/signin/', account_api.sign_in, name='api-account-signin'),
+    path('api/v1/account/signout/', account_api.sign_out, name='api-account-signout'),
+    path('api/v1/account/me/', account_api.me, name='api-account-me'),
+    path('api/v1/lessons/<slug:slug>/', learning_api.lesson_detail, name='api-lesson'),
+    path('api/v1/lessons/<slug:slug>/complete/', learning_api.complete_lesson, name='api-lesson-complete'),
+    path('api/v1/progress/', learning_api.progress, name='api-progress'),
+    path('unlock/', never_cache(billing_views.unlock), name='unlock'),
+    path('unlock/waiting/<int:payment_id>/', never_cache(billing_views.waiting), name='unlock-waiting'),
+    path('unlock/status/<int:payment_id>/', never_cache(billing_views.payment_status), name='unlock-status'),
+    path('api/v1/billing/status/', billing_api.status, name='api-billing-status'),
+    path('api/v1/billing/pay/', billing_api.pay, name='api-billing-pay'),
+    path('api/v1/billing/payments/', billing_api.payment_list, name='api-billing-payments'),
+    path('api/v1/billing/payments/<int:payment_id>/', billing_api.payment_detail, name='api-billing-payment'),
+    path('api/v1/billing/mpesa/callback/<str:secret>/', billing_api.mpesa_callback, name='api-billing-callback'),
+    path('api/v1/practice/', practice_api.history, name='api-practice-history'),
+    path('api/v1/practice/attempts/<int:attempt_id>/', practice_api.attempt_detail, name='api-practice-attempt'),
+    path('api/v1/practice/attempts/<int:attempt_id>/answers/<slug:question_id>/', practice_api.answer, name='api-practice-answer'),
+    path('api/v1/practice/attempts/<int:attempt_id>/submit/', practice_api.submit, name='api-practice-submit'),
+    path('api/v1/practice/<slug:slug>/', practice_api.detail, name='api-practice'),
+    path('api/v1/practice/<slug:slug>/attempts/', practice_api.start, name='api-practice-start'),
+    path('api/v1/notes/', notepad_api.notes, name='api-notes'),
+    path('api/v1/notes/for-context/', notepad_api.for_context, name='api-notes-context'),
+    path('api/v1/notes/<uuid:uid>/', notepad_api.note_detail, name='api-note'),
+    path('api/v1/notes/<uuid:uid>/duplicate/', notepad_api.duplicate, name='api-note-duplicate'),
+    path('api/v1/notes/<uuid:uid>/versions/', notepad_api.versions, name='api-note-versions'),
+    path('api/v1/notes/<uuid:uid>/versions/<int:number>/restore/', notepad_api.restore, name='api-note-restore'),
+    path('api/v1/notes/<uuid:uid>/export/', notepad_api.export, name='api-note-export'),
+    path('api/v1/calc/compound/', notepad_api.calc_compound, name='api-calc-compound'),
+    path('api/v1/calc/compare/', notepad_api.calc_compare, name='api-calc-compare'),
+    path('api/v1/calc/instrument/', notepad_api.calc_instrument, name='api-calc-instrument'),
+    path('api/v1/calc/rules/', notepad_api.calc_rules, name='api-calc-rules'),
     path('admin/', admin_site.urls),
 ]

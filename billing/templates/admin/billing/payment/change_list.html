@@ -1,0 +1,31 @@
+{% extends "admin/change_list.html" %}
+{% block result_list %}
+<div class="module" style="margin-bottom:18px">
+  <h2>Sales summary (KES, East Africa time)</h2>
+  {% if sales.review or sales.stuck %}
+  <p style="padding:8px 12px;margin:0;background:#fff4e0">
+    {% if sales.review %}<strong>{{ sales.review }}</strong> payment{{ sales.review|pluralize }} need a look (amount did not match). <a href="?status__exact=review">Show</a>.{% endif %}
+    {% if sales.stuck %}<strong>{{ sales.stuck }}</strong> prompt{{ sales.stuck|pluralize }} still waiting after 15 minutes. <a href="?status__exact=pending">Show</a>.{% endif %}
+  </p>
+  {% endif %}
+  <table>
+    <caption>Live money</caption>
+    <thead><tr><th>Period</th><th>Payments</th><th>KES</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Today</th><td>{{ sales.live.today.count }}</td><td>{{ sales.live.today.amount }}</td></tr>
+      <tr><th scope="row">Last 7 days</th><td>{{ sales.live.week.count }}</td><td>{{ sales.live.week.amount }}</td></tr>
+      <tr><th scope="row">Last 30 days</th><td>{{ sales.live.month.count }}</td><td>{{ sales.live.month.amount }}</td></tr>
+      <tr><th scope="row">All time</th><td>{{ sales.live.all.count }}</td><td>{{ sales.live.all.amount }}</td></tr>
+      <tr><th scope="row">of which single modules</th><td>{{ sales.live.modules.count }}</td><td>{{ sales.live.modules.amount }}</td></tr>
+      <tr><th scope="row">of which all-modules passes</th><td>{{ sales.live.all_pass.count }}</td><td>{{ sales.live.all_pass.amount }}</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <caption>Last 14 days (live)</caption>
+    <thead><tr><th>Day</th><th>Payments</th><th>KES</th></tr></thead>
+    <tbody>{% for d in sales.live.days %}<tr><td>{{ d.day|date:"D j M" }}</td><td>{{ d.count }}</td><td>{{ d.amount }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <p style="padding:8px 12px;margin:0;color:#666">Test mode (sandbox), not real money: {{ sales.test.all.count }} payment{{ sales.test.all.count|pluralize }}, KES {{ sales.test.all.amount }} in total.</p>
+</div>
+{{ block.super }}
+{% endblock %}

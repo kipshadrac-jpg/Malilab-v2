@@ -27,6 +27,17 @@
       {% endif %}
     </nav>
   </header>
+  {% if billing_strip %}
+  <aside class="billing-strip" aria-label="Your plan">
+    {% if billing_strip.kind == 'trial' %}
+      Free trial: {% if billing_strip.days <= 1 %}less than a day{% else %}{{ billing_strip.days }} days{% endif %} left.
+      Modules are KES {{ billing_strip.module_price }} each, or KES {{ billing_strip.all_price }} for all of them. You pay once and keep them.
+    {% else %}
+      You are on the free plan. Modules are KES {{ billing_strip.module_price }} each, or KES {{ billing_strip.all_price }} for all of them, paid once and kept for good.
+    {% endif %}
+    <a href="{% url 'unlock' %}">See options</a>
+  </aside>
+  {% endif %}
   <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
   <footer class="site-footer"><p>MaliLab · Learn at your own pace</p></footer>
 </body>

@@ -1,0 +1,23 @@
+{% extends 'content/base.html' %}
+{% block title %}Unlock — MaliLab{% endblock %}
+{% block content %}
+<article class="reading">
+  <h1>{% if module %}Unlock {{ module_title }}{% else %}Unlock all modules{% endif %}</h1>
+  <p class="lead">Pay once and keep it for good. There is no subscription and nothing is charged again.</p>
+  {% if sandbox %}<p role="note"><strong>Test mode:</strong> no real money is taken.</p>{% endif %}
+  {% if error %}<p role="alert"><strong>{{ error }}</strong></p>{% endif %}
+  <form method="post" action="{% url 'unlock' %}">{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% if module %}<input type="hidden" name="module" value="{{ module.slug }}">{% endif %}
+    <fieldset>
+      <legend>What would you like?</legend>
+      {% if module %}<p><label><input type="radio" name="product" value="module"{% if choice != 'all' %} checked{% endif %}> This module — KES {{ price_module }}</label></p>{% endif %}
+      <p><label><input type="radio" name="product" value="all"{% if choice == 'all' or not module %} checked{% endif %}> All modules — KES {{ price_all }}</label></p>
+    </fieldset>
+    <p><label for="phone">M-Pesa phone number</label><br>
+      <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0712 345 678" value="{{ phone }}" required></p>
+    <p><button type="submit">Send the M-Pesa prompt</button></p>
+    <p>You will get a prompt on your phone. Enter your M-Pesa PIN to approve it.</p>
+  </form>
+</article>
+{% endblock %}

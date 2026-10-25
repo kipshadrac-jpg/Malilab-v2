@@ -19,6 +19,8 @@ def _page(template, context):
     request = context.pop('_request', None)
     if request is not None:
         context.update({'user': request.user, 'csrf_token': get_token(request)})
+        from billing.context import strip as billing_strip
+        context.update(billing_strip(request))
     return HttpResponse(render_to_string(template, context))
 
 
@@ -62,7 +64,13 @@ def module_detail(request, slug):
         completion = ModuleCompletion.objects.filter(owner=request.user,module_revision=revision).order_by('-evaluated_at').first()
     snapshot_rows = {row.get('requirement_id'): row for row in (completion.evidence_snapshot.get('requirements', []) if completion else []) if isinstance(row, dict)}
     requirement_rows = [{'requirement': req, 'satisfied': bool(snapshot_rows.get(req.pk, {}).get('satisfied', False))} for req in requirements]
+    from billing.catalog import MODULE_PRICE, paywall_on
+    show_unlock = False
+    if paywall_on():
+        from billing import service as billing_service
+        show_unlock = bool(billing_service.web_gate(request.user, [identity]))
     return _page('content/module_detail.html', {
+        'show_unlock': show_unlock, 'module_price': MODULE_PRICE,
         'identity': identity, 'revision': revision, 'lessons': lessons, 'playbook': playbook,
         'requirements': requirement_rows, 'completion': completion, '_request': request,
     })
@@ -79,6 +87,13 @@ def _lesson_completed(request, revision):
 def lesson_detail(request, slug):
     identity, revision = resolve_public_revision(Lesson, slug)
     published_modules = list(public_lesson_modules(revision))
+    from billing.catalog import paywall_on
+    if paywall_on():
+        from billing import service as billing_service
+        blocked = billing_service.web_gate(request.user, published_modules)
+        if blocked:
+            from billing.views import locked_page
+            return locked_page(request, blocked, revision.title, revision.summary, 'lesson')
 
     module_slug = request.GET.get('module')
     context_module = None

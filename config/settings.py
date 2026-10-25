@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
     'django_otp', 'django_otp.plugins.otp_totp',
-    'accounts', 'content', 'practice', 'calculations', 'planning', 'learning', 'discovery',
+    'accounts', 'content', 'practice', 'calculations', 'planning', 'learning', 'discovery', 'notepad', 'billing',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware', 'django.contrib.sessions.middleware.SessionMiddleware',
@@ -28,7 +28,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 ROOT_URLCONF = 'config.urls'
-TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
+TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages', 'billing.context.strip']}}]
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 DATABASES = {'default': {'ENGINE':'django.db.backends.postgresql','NAME':os.environ.get('MALILAB_DB_NAME','malilab'),'USER':os.environ.get('MALILAB_DB_USER','malilab_app'),'HOST':os.environ.get('MALILAB_DB_HOST','127.0.0.1'),'PORT':os.environ.get('MALILAB_DB_PORT','5432'),'CONN_MAX_AGE':60}}
@@ -79,3 +79,18 @@ STAFF_OTP_REQUIRED = os.environ.get('MALILAB_STAFF_OTP', '0') == '1'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365      # stay signed in for a year, renewed every time the site is used
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
+
+
+# --- patch 25: payments (M-Pesa) -----------------------------------------------------------------------
+# MALILAB_PAYWALL=1 locks modules until bought. Leave it off while testing the sandbox.
+MALILAB_PAYWALL = os.environ.get('MALILAB_PAYWALL', '0') == '1' and 'test' not in __import__('sys').argv
+MALILAB_ALL_COVERS_FUTURE = os.environ.get('MALILAB_ALL_COVERS_FUTURE', '1') == '1'
+MALILAB_PAY_PROVIDERS = [p.strip() for p in os.environ.get('MALILAB_PAY_PROVIDERS', 'mpesa').split(',') if p.strip()]
+MPESA_ENV = os.environ.get('MPESA_ENV', 'sandbox')
+MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY', '')
+MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET', '')
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '174379')
+MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY', '')
+MPESA_CALLBACK_SECRET = os.environ.get('MPESA_CALLBACK_SECRET', '')
+MPESA_CALLBACK_BASE = os.environ.get('MPESA_CALLBACK_BASE', 'https://malilab.online')
+MPESA_TRANSACTION_TYPE = os.environ.get('MPESA_TRANSACTION_TYPE', 'CustomerPayBillOnline')

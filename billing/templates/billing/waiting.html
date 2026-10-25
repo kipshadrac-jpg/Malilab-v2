@@ -1,0 +1,37 @@
+{% extends 'content/base.html' %}
+{% block title %}Waiting for M-Pesa — MaliLab{% endblock %}
+{% block content %}
+<article class="reading">
+  <h1>Check your phone</h1>
+  <p class="lead" id="wait-message" role="status" aria-live="polite" data-status="{{ status_url }}" data-next="{{ next }}">Enter your M-Pesa PIN to approve the payment. This page updates by itself.</p>
+  {% if sandbox %}<p role="note"><strong>Test mode:</strong> no real money is taken.</p>{% endif %}
+  <p><a href="{{ request.get_full_path }}">Check again</a> · <a href="{{ next }}">Back</a></p>
+  <script>
+    (function () {
+      var box = document.getElementById('wait-message');
+      var statusUrl = box.getAttribute('data-status');
+      var nextUrl = box.getAttribute('data-next');
+      var words = {
+        cancelled: 'You cancelled the payment on your phone. Nothing was charged.',
+        expired: 'The payment prompt timed out. Nothing was charged. You can try again.',
+        review: 'We received a payment that does not match the price. Please contact support with your M-Pesa message.',
+        failed: 'The payment did not go through. Nothing was charged.'
+      };
+      var tries = 0;
+      function tick() {
+        tries += 1;
+        fetch(statusUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.status === 'paid') { box.textContent = 'Unlocked. Taking you back…'; window.location.href = nextUrl; return; }
+            if (d.status !== 'pending') { box.textContent = words[d.status] || words.failed; return; }
+            if (tries < 40) { setTimeout(tick, 3000); }
+            else { box.textContent = 'Still waiting. If you approved the payment, choose Check again.'; }
+          })
+          .catch(function () { if (tries < 40) { setTimeout(tick, 4000); } });
+      }
+      setTimeout(tick, 3000);
+    })();
+  </script>
+</article>
+{% endblock %}

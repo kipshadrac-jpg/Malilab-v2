@@ -23,6 +23,13 @@ def activity(request, slug):
         identity, revision = resolve_public_activity(slug)
     except ValidationError:
         return _context_page(request, 'practice/unavailable.html', {}, 503)
+    from billing.catalog import paywall_on
+    if paywall_on():
+        from billing import service as billing_service
+        blocked = billing_service.web_gate(request.user, billing_service.practice_modules(identity))
+        if blocked:
+            from billing.views import locked_page
+            return locked_page(request, blocked, revision.title, revision.instructions, 'practice')
     open_attempts = []
     if request.user.is_authenticated and request.user.can_use_personal_features:
         open_attempts = PracticeAttempt.objects.filter(owner=request.user, state='started', practice_revision__activity=identity).select_related('practice_revision').order_by('-started_at')
@@ -32,6 +39,15 @@ def activity(request, slug):
 @login_required(login_url='sign-in')
 @require_POST
 def start(request, slug):
+    from billing.catalog import paywall_on
+    if paywall_on():
+        from billing import service as billing_service
+        try:
+            activity_identity, _ = resolve_public_activity(slug)
+        except ValidationError:
+            activity_identity = None
+        if activity_identity is not None and billing_service.web_gate(request.user, billing_service.practice_modules(activity_identity)):
+            return redirect(reverse('unlock') + '?next=' + reverse('practice-activity', args=[slug]))
     try:
         attempt = create_attempt(user=request.user, slug=slug)
     except PermissionDenied:
